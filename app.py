@@ -1081,10 +1081,48 @@ elif "Document Chat" in mode:
     )
 
     if not RAG_OK:
-        st.error(
-            "RAG dependencies not installed. Run:\n\n"
-            "`pip install fastembed faiss-cpu langchain langchain-community numpy`"
-        )
+        st.markdown("""
+<div style="background:#0a1628;border:1px solid rgba(32,196,203,0.2);
+border-left:3px solid #20c4cb;border-radius:10px;padding:1.4rem 1.6rem;margin-top:1rem">
+  <div style="font-size:18px;font-weight:500;color:#e8f4f8;margin-bottom:8px">
+    🖥️ Available on Local Docker Version
+  </div>
+  <div style="font-size:14px;color:#5a8099;line-height:1.8;margin-bottom:14px">
+    Document Chat (RAG) requires heavy ML packages that exceed Streamlit Cloud's
+    free tier limits. It runs fully on your local Docker setup.
+  </div>
+  <div style="background:#060b14;border:1px solid rgba(32,196,203,0.15);
+  border-radius:8px;padding:1rem 1.2rem;margin-bottom:14px">
+    <div style="font-size:11px;letter-spacing:2px;color:#3a5870;margin-bottom:8px">
+      TO RUN LOCALLY
+    </div>
+    <div style="font-family:monospace;font-size:13px;color:#20c4cb;line-height:2">
+      1. Clone repo: git clone https://github.com/Gyan3233/url-summarizer-ai<br>
+      2. Add your key: echo "GROQ_API_KEY=gsk_..." > .env<br>
+      3. Run: docker-compose up --build<br>
+      4. Open: http://localhost:8501
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <div style="background:rgba(32,196,203,0.08);border:1px solid rgba(32,196,203,0.2);
+    border-radius:6px;padding:5px 12px;font-size:12px;color:#20c4cb">
+      ✅ Summarize URLs — available here
+    </div>
+    <div style="background:rgba(32,196,203,0.08);border:1px solid rgba(32,196,203,0.2);
+    border-radius:6px;padding:5px 12px;font-size:12px;color:#20c4cb">
+      ✅ Compare & Rank — available here
+    </div>
+    <div style="background:rgba(32,196,203,0.08);border:1px solid rgba(32,196,203,0.2);
+    border-radius:6px;padding:5px 12px;font-size:12px;color:#20c4cb">
+      ✅ Power BI Analyst — available here
+    </div>
+    <div style="background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);
+    border-radius:6px;padding:5px 12px;font-size:12px;color:#34d399">
+      🖥️ Document Chat (RAG) — Docker only
+    </div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
         st.stop()
 
     # ── Step 1: Upload ────────────────────────────────────────
