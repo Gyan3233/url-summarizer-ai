@@ -582,104 +582,60 @@ with st.sidebar:
 #  HEADER
 # ─────────────────────────────────────────────────────────────
 # ── LENS topbar ──────────────────────────────────────────────
-st.markdown("""
-<div style="
-  background:linear-gradient(135deg,#080e1c 0%,#0a1628 100%);
-  border:1px solid rgba(32,196,203,0.2);
-  border-radius:16px;
-  padding:20px 28px;
-  margin-bottom:1.4rem;
-  position:relative;overflow:hidden;
-">
-  <!-- Background glow -->
-  <div style="
-    position:absolute;top:-40px;left:-40px;
-    width:220px;height:160px;
-    background:radial-gradient(ellipse,rgba(32,196,203,0.08),transparent 70%);
-    pointer-events:none;
-  "></div>
-  <div style="
-    position:absolute;bottom:-40px;right:-20px;
-    width:180px;height:140px;
-    background:radial-gradient(ellipse,rgba(52,211,153,0.05),transparent 70%);
-    pointer-events:none;
-  "></div>
+# ── LENS Header — native Streamlit (works on Streamlit Cloud) ──
+st.markdown(
+    """<div style="background:linear-gradient(135deg,#080e1c,#0a1628);"""
+    """border:1px solid rgba(32,196,203,0.2);border-radius:16px;"""
+    """padding:22px 28px;margin-bottom:1.4rem;overflow:hidden;position:relative;">"""
 
-  <div style="display:flex;align-items:center;gap:20px;position:relative">
+    # glow blobs
+    """<div style="position:absolute;top:-30px;left:-30px;width:200px;height:140px;"""
+    """background:radial-gradient(ellipse,rgba(32,196,203,0.07),transparent 70%);pointer-events:none"></div>"""
+    """<div style="position:absolute;bottom:-30px;right:-20px;width:160px;height:120px;"""
+    """background:radial-gradient(ellipse,rgba(52,211,153,0.05),transparent 70%);pointer-events:none"></div>"""
 
-    <!-- Logo icon -->
-    <div style="
-      width:52px;height:52px;border-radius:12px;
-      background:linear-gradient(135deg,#0a5a66 0%,#20c4cb 100%);
-      display:flex;align-items:center;justify-content:center;flex-shrink:0;
-      box-shadow:0 0 24px rgba(32,196,203,0.3),0 4px 12px rgba(0,0,0,0.4);
-    ">
-      <span style="color:#fff;font-size:26px;font-weight:700;letter-spacing:-2px;line-height:1">L</span>
-    </div>
+    # flex row
+    """<div style="display:flex;align-items:center;gap:20px;position:relative">"""
 
-    <!-- Brand text -->
-    <div style="line-height:1.2;flex-shrink:0">
-      <div style="
-        font-size:32px;font-weight:600;
-        color:#e8f4f8;
-        letter-spacing:2px;
-        text-shadow:0 0 30px rgba(32,196,203,0.3);
-        line-height:1;
-      ">LENS</div>
-      <div style="
-        font-size:10px;letter-spacing:3px;
-        color:#20c4cb;font-weight:400;
-        text-transform:uppercase;margin-top:4px;
-        opacity:.8;
-      ">AI Document Platform</div>
-    </div>
+    # icon
+    """<div style="width:54px;height:54px;border-radius:12px;flex-shrink:0;"""
+    """background:linear-gradient(135deg,#0a5a66,#20c4cb);"""
+    """display:flex;align-items:center;justify-content:center;"""
+    """box-shadow:0 0 24px rgba(32,196,203,0.3),0 4px 12px rgba(0,0,0,0.5);">"""
+    """<span style="color:#fff;font-size:28px;font-weight:700;line-height:1">L</span></div>"""
 
-    <!-- Vertical divider -->
-    <div style="
-      width:1px;height:44px;
-      background:linear-gradient(180deg,transparent,rgba(32,196,203,0.3),transparent);
-      flex-shrink:0;margin:0 4px;
-    "></div>
+    # brand
+    """<div style="flex-shrink:0;line-height:1.2">"""
+    """<div style="font-size:32px;font-weight:600;color:#e8f4f8;letter-spacing:2px;"""
+    """text-shadow:0 0 28px rgba(32,196,203,0.25);line-height:1">LENS</div>"""
+    """<div style="font-size:10px;letter-spacing:3px;color:#20c4cb;"""
+    """text-transform:uppercase;margin-top:5px;opacity:.85">AI Document Platform</div></div>"""
 
-    <!-- Tagline -->
-    <div style="
-      font-size:14px;color:#5a8099;letter-spacing:.4px;
-      line-height:1.6;
-    ">
-      Summarize &nbsp;·&nbsp; Compare &nbsp;·&nbsp; Chat &nbsp;·&nbsp; Analyse
-    </div>
+    # divider
+    """<div style="width:1px;height:44px;flex-shrink:0;margin:0 4px;"""
+    """background:linear-gradient(180deg,transparent,rgba(32,196,203,0.3),transparent)"></div>"""
 
-    <!-- Right pills -->
-    <div style="margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0">
-      <div style="
-        background:rgba(32,196,203,0.08);
-        border:1px solid rgba(32,196,203,0.25);
-        border-radius:20px;padding:6px 14px;
-        font-size:12px;color:#20c4cb;
-        display:flex;align-items:center;gap:6px;
-        letter-spacing:.3px;
-      ">
-        <span style="font-size:14px">⬡</span>
-        Llama 3.3 70B
-      </div>
-      <div style="
-        background:rgba(52,211,153,0.08);
-        border:1px solid rgba(52,211,153,0.25);
-        border-radius:20px;padding:6px 14px;
-        font-size:12px;color:#34d399;
-        display:flex;align-items:center;gap:6px;
-      ">
-        <span style="
-          width:7px;height:7px;border-radius:50%;
-          background:#34d399;display:inline-block;
-          box-shadow:0 0 6px #34d399;
-        "></span>
-        Live · v3.0
-      </div>
-    </div>
-  </div>
-</div>
-""", unsafe_allow_html=True)
+    # tagline
+    """<div style="font-size:14px;color:#5a8099;letter-spacing:.3px">"""
+    """Summarize &nbsp;&middot;&nbsp; Compare &nbsp;&middot;&nbsp; """
+    """Chat &nbsp;&middot;&nbsp; Analyse</div>"""
+
+    # right pills
+    """<div style="margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0">"""
+    """<div style="background:rgba(32,196,203,0.08);border:1px solid rgba(32,196,203,0.25);"""
+    """border-radius:20px;padding:6px 14px;font-size:12px;color:#20c4cb;"""
+    """display:flex;align-items:center;gap:6px">"""
+    """<span>&#x2B21;</span> Llama 3.3 70B</div>"""
+    """<div style="background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);"""
+    """border-radius:20px;padding:6px 14px;font-size:12px;color:#34d399;"""
+    """display:flex;align-items:center;gap:6px">"""
+    """<span style="width:7px;height:7px;border-radius:50%;background:#34d399;"""
+    """display:inline-block;box-shadow:0 0 6px #34d399"></span>"""
+    """Live &middot; v3.0</div></div>"""
+
+    """</div></div>""",
+    unsafe_allow_html=True
+)
 
 # Inject larger radio button styles
 st.markdown("""
