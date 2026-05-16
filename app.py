@@ -584,63 +584,132 @@ with st.sidebar:
 # ── LENS topbar ──────────────────────────────────────────────
 st.markdown("""
 <div style="
-  background:#080e1c;
-  border:1px solid rgba(32,196,203,0.15);
-  border-radius:12px;
-  padding:14px 22px;
-  display:flex;align-items:center;gap:16px;
-  margin-bottom:1rem;
+  background:linear-gradient(135deg,#080e1c 0%,#0a1628 100%);
+  border:1px solid rgba(32,196,203,0.2);
+  border-radius:16px;
+  padding:20px 28px;
+  margin-bottom:1.4rem;
   position:relative;overflow:hidden;
 ">
+  <!-- Background glow -->
   <div style="
-    position:absolute;top:0;left:0;right:0;bottom:0;
-    background:radial-gradient(ellipse at 20% 50%,rgba(32,196,203,0.04),transparent 60%);
+    position:absolute;top:-40px;left:-40px;
+    width:220px;height:160px;
+    background:radial-gradient(ellipse,rgba(32,196,203,0.08),transparent 70%);
+    pointer-events:none;
+  "></div>
+  <div style="
+    position:absolute;bottom:-40px;right:-20px;
+    width:180px;height:140px;
+    background:radial-gradient(ellipse,rgba(52,211,153,0.05),transparent 70%);
     pointer-events:none;
   "></div>
 
-  <!-- Logo -->
-  <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-    <div style="
-      width:34px;height:34px;border-radius:8px;
-      background:linear-gradient(135deg,#0d7a85,#20c4cb);
-      display:flex;align-items:center;justify-content:center;
-      box-shadow:0 0 16px rgba(32,196,203,0.25);
-    ">
-      <span style="color:#fff;font-size:16px;font-weight:700;letter-spacing:-1px">L</span>
-    </div>
-    <div style="line-height:1.15">
-      <div style="font-size:16px;font-weight:500;color:#e0ecf4;letter-spacing:.5px">LENS</div>
-      <div style="font-size:8px;letter-spacing:2.5px;color:#3a5870;font-weight:400;text-transform:uppercase">AI Document Platform</div>
-    </div>
-  </div>
+  <div style="display:flex;align-items:center;gap:20px;position:relative">
 
-  <!-- Divider -->
-  <div style="width:1px;height:28px;background:rgba(32,196,203,0.15);flex-shrink:0"></div>
-
-  <!-- Tagline -->
-  <div style="font-size:12px;color:#4a6a80;letter-spacing:.2px">
-    Summarize &nbsp;·&nbsp; Compare &nbsp;·&nbsp; Chat &nbsp;·&nbsp; Analyse
-  </div>
-
-  <!-- Right pills -->
-  <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+    <!-- Logo icon -->
     <div style="
-      background:rgba(32,196,203,0.08);border:1px solid rgba(32,196,203,0.2);
-      border-radius:20px;padding:3px 10px;
-      font-size:10px;color:#20c4cb;display:flex;align-items:center;gap:5px;
+      width:52px;height:52px;border-radius:12px;
+      background:linear-gradient(135deg,#0a5a66 0%,#20c4cb 100%);
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;
+      box-shadow:0 0 24px rgba(32,196,203,0.3),0 4px 12px rgba(0,0,0,0.4);
     ">
-      <span style="font-size:8px">⬡</span> Llama 3.3 70B
+      <span style="color:#fff;font-size:26px;font-weight:700;letter-spacing:-2px;line-height:1">L</span>
     </div>
+
+    <!-- Brand text -->
+    <div style="line-height:1.2;flex-shrink:0">
+      <div style="
+        font-size:32px;font-weight:600;
+        color:#e8f4f8;
+        letter-spacing:2px;
+        text-shadow:0 0 30px rgba(32,196,203,0.3);
+        line-height:1;
+      ">LENS</div>
+      <div style="
+        font-size:10px;letter-spacing:3px;
+        color:#20c4cb;font-weight:400;
+        text-transform:uppercase;margin-top:4px;
+        opacity:.8;
+      ">AI Document Platform</div>
+    </div>
+
+    <!-- Vertical divider -->
     <div style="
-      background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);
-      border-radius:20px;padding:3px 10px;
-      font-size:10px;color:#34d399;display:flex;align-items:center;gap:5px;
+      width:1px;height:44px;
+      background:linear-gradient(180deg,transparent,rgba(32,196,203,0.3),transparent);
+      flex-shrink:0;margin:0 4px;
+    "></div>
+
+    <!-- Tagline -->
+    <div style="
+      font-size:14px;color:#5a8099;letter-spacing:.4px;
+      line-height:1.6;
     ">
-      <span style="width:5px;height:5px;border-radius:50%;background:#34d399;display:inline-block"></span>
-      Live · v3.0
+      Summarize &nbsp;·&nbsp; Compare &nbsp;·&nbsp; Chat &nbsp;·&nbsp; Analyse
+    </div>
+
+    <!-- Right pills -->
+    <div style="margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <div style="
+        background:rgba(32,196,203,0.08);
+        border:1px solid rgba(32,196,203,0.25);
+        border-radius:20px;padding:6px 14px;
+        font-size:12px;color:#20c4cb;
+        display:flex;align-items:center;gap:6px;
+        letter-spacing:.3px;
+      ">
+        <span style="font-size:14px">⬡</span>
+        Llama 3.3 70B
+      </div>
+      <div style="
+        background:rgba(52,211,153,0.08);
+        border:1px solid rgba(52,211,153,0.25);
+        border-radius:20px;padding:6px 14px;
+        font-size:12px;color:#34d399;
+        display:flex;align-items:center;gap:6px;
+      ">
+        <span style="
+          width:7px;height:7px;border-radius:50%;
+          background:#34d399;display:inline-block;
+          box-shadow:0 0 6px #34d399;
+        "></span>
+        Live · v3.0
+      </div>
     </div>
   </div>
 </div>
+""", unsafe_allow_html=True)
+
+# Inject larger radio button styles
+st.markdown("""
+<style>
+div[role="radiogroup"] label {
+    background:#0a1220 !important;
+    border:1px solid rgba(32,196,203,0.2) !important;
+    border-radius:10px !important;
+    padding:10px 20px !important;
+    color:#6b82a8 !important;
+    font-size:14px !important;
+    font-weight:400 !important;
+    letter-spacing:.3px !important;
+    transition:all .2s !important;
+    margin-right:6px !important;
+}
+div[role="radiogroup"] label:hover {
+    border-color:rgba(32,196,203,0.5) !important;
+    color:#20c4cb !important;
+    background:rgba(32,196,203,0.06) !important;
+}
+div[role="radiogroup"] label[data-checked="true"],
+div[role="radiogroup"] label[aria-checked="true"] {
+    background:rgba(32,196,203,0.12) !important;
+    border-color:#20c4cb !important;
+    color:#20c4cb !important;
+    box-shadow:0 0 12px rgba(32,196,203,0.15) !important;
+}
+div[role="radiogroup"] { gap:0px !important; }
+</style>
 """, unsafe_allow_html=True)
 
 mode = st.radio("", [
@@ -654,8 +723,9 @@ mode = st.radio("", [
 # Normalise mode key (strip extra spaces for matching)
 mode = mode.strip()
 st.markdown(
-    '<div style="height:2px;background:linear-gradient(90deg,rgba(32,196,203,0.4),rgba(32,196,203,0),rgba(52,211,153,0));'
-    'border-radius:2px;margin-bottom:1.2rem"></div>',
+    '<div style="height:2px;margin:8px 0 20px;'
+    'background:linear-gradient(90deg,rgba(32,196,203,0.5),rgba(32,196,203,0.1),transparent);'
+    'border-radius:2px"></div>',
     unsafe_allow_html=True
 )
 
@@ -1057,7 +1127,7 @@ elif "Document Chat" in mode:
     if not RAG_OK:
         st.error(
             "RAG dependencies not installed. Run:\n\n"
-            "`pip install sentence-transformers faiss-cpu langchain langchain-community`"
+            "`pip install fastembed faiss-cpu langchain langchain-community numpy`"
         )
         st.stop()
 
