@@ -29,7 +29,7 @@ except ImportError:
     DOCX_OK = False
 
 try:
-    from sentence_transformers import SentenceTransformer
+    from fastembed import TextEmbedding
     import faiss, numpy as np
     from langchain.text_splitter import RecursiveCharacterTextSplitter
     RAG_OK = True
@@ -38,59 +38,224 @@ except ImportError:
 
 # ─────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="AI Document & URL Analyst",
-    page_icon="🧠",
+    page_title="LENS — AI Document Platform",
+    page_icon="🔷",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 st.markdown("""
 <style>
-.stApp{background:#0f1117}
-.card{background:#1e2130;border:1px solid #2d3147;border-radius:12px;
-      padding:1.2rem 1.4rem;margin-bottom:1rem}
-.card h4{color:#7c8cf8;margin:0 0 .5rem;font-size:.93rem}
-.card p{color:#cdd6f4;line-height:1.7;margin:0;font-size:.92rem}
-.url-tag{display:inline-block;background:#2d3147;color:#89b4fa;
-         border-radius:6px;padding:2px 10px;font-size:.78rem;
-         margin-bottom:.5rem;font-family:monospace}
-.badge-ok{color:#a6e3a1;font-size:.78rem}
-.badge-fail{color:#f38ba8;font-size:.78rem}
-.compare-box{background:#1a1d2e;border:1px solid #2d3147;
-             border-radius:10px;padding:1rem 1.2rem;height:100%}
-.compare-box h5{color:#cba6f7;margin:0 0 .5rem;font-size:.88rem}
-.compare-box p{color:#a6adc8;line-height:1.6;margin:0;font-size:.87rem}
-.winner-box{background:#1a2a1e;border:1px solid #3b7a4a;
-            border-radius:12px;padding:1.2rem 1.4rem;margin-top:1rem}
-.winner-box h4{color:#a6e3a1;margin:0 0 .5rem}
-.winner-box p{color:#cdd6f4;line-height:1.7;margin:0;font-size:.92rem}
-.insight-box{background:#1e2130;border-left:3px solid #7c8cf8;
-             border-radius:0 10px 10px 0;padding:.9rem 1.1rem;margin-bottom:.6rem}
-.insight-box h5{color:#7c8cf8;margin:0 0 .3rem;font-size:.88rem}
-.insight-box p{color:#cdd6f4;line-height:1.6;margin:0;font-size:.9rem}
-.rag-msg-user{display:flex;justify-content:flex-end;margin-bottom:.6rem}
-.rag-msg-user .bubble{background:#1a2b4a;color:#e8f0fe;border-radius:12px 0 12px 12px;
-                      padding:.6rem 1rem;font-size:.9rem;max-width:80%;line-height:1.6}
-.rag-msg-ai{display:flex;gap:8px;align-items:flex-start;margin-bottom:.6rem}
-.rag-msg-ai .bubble{background:#1e2130;color:#cdd6f4;border-radius:0 12px 12px 12px;
-                    padding:.6rem 1rem;font-size:.9rem;max-width:88%;line-height:1.6;
-                    border:1px solid #2d3147}
-.dept-card{background:#1e2130;border:1px solid #2d3147;border-radius:10px;
-           padding:.9rem 1rem;text-align:center;cursor:pointer;transition:all .2s}
-.dept-card:hover{border-color:#7c8cf8}
-.dept-card h5{color:#7c8cf8;margin:0 0 .3rem;font-size:.88rem}
-.dept-card p{color:#a6adc8;margin:0;font-size:.78rem}
-section[data-testid="stSidebar"]{background:#13151f}
-.stButton>button{background:linear-gradient(135deg,#7c8cf8,#89b4fa);
-                 color:#0f1117;border:none;border-radius:8px;font-weight:600}
-.stButton>button:hover{opacity:.88}
-.stTextArea textarea{background:#1e2130!important;color:#cdd6f4!important;
-                     border:1px solid #2d3147!important;border-radius:8px!important}
-.stTextInput input{background:#1e2130!important;color:#cdd6f4!important;
-                   border:1px solid #2d3147!important}
-[data-testid="stMetricValue"]{color:#cdd6f4!important}
-[data-testid="stMetricLabel"]{color:#6c7086!important}
-hr{border-color:#2d3147}
+/* ── LENS AI Document Platform — Design System ── */
+/* Base: deep navy-black, teal/cyan accents, amber highlights */
+.stApp{background:#060b14}
+
+/* Sidebar */
+section[data-testid="stSidebar"]{
+  background:#080e1c;
+  border-right:1px solid rgba(32,196,203,0.12);
+}
+section[data-testid="stSidebar"] .stSelectbox label,
+section[data-testid="stSidebar"] .stSlider label,
+section[data-testid="stSidebar"] p{color:#6b82a8}
+
+/* Inputs */
+.stTextArea textarea{
+  background:#0d1526!important;color:#c8d8f0!important;
+  border:1px solid rgba(32,196,203,0.2)!important;
+  border-radius:8px!important;font-size:.92rem!important;
+}
+.stTextArea textarea:focus{border-color:rgba(32,196,203,0.5)!important;}
+.stTextInput input{
+  background:#0d1526!important;color:#c8d8f0!important;
+  border:1px solid rgba(32,196,203,0.2)!important;border-radius:8px!important;
+}
+.stTextInput input:focus{border-color:rgba(32,196,203,0.5)!important;}
+.stSelectbox>div>div{
+  background:#0d1526!important;color:#c8d8f0!important;
+  border:1px solid rgba(32,196,203,0.18)!important;
+}
+
+/* Buttons */
+.stButton>button{
+  background:transparent;
+  border:1px solid rgba(32,196,203,0.4);
+  color:#20c4cb;border-radius:7px;font-weight:500;
+  transition:all .2s;letter-spacing:.3px;
+}
+.stButton>button:hover{
+  background:rgba(32,196,203,0.1);
+  border-color:#20c4cb;color:#fff;
+}
+.stButton>button:active{transform:scale(.98)}
+
+/* Metrics */
+[data-testid="stMetricValue"]{color:#20c4cb!important;font-size:1.6rem!important}
+[data-testid="stMetricLabel"]{color:#4a6080!important;font-size:.78rem!important;letter-spacing:.5px}
+[data-testid="stMetric"]{
+  background:#0a1220;border:1px solid rgba(32,196,203,0.12);
+  border-radius:10px;padding:.8rem 1rem;
+}
+
+/* Divider */
+hr{border-color:rgba(32,196,203,0.1)}
+
+/* ── Cards ── */
+.card{
+  background:#0a1220;
+  border:1px solid rgba(32,196,203,0.15);
+  border-left:3px solid #20c4cb;
+  border-radius:10px;
+  padding:1.2rem 1.4rem;margin-bottom:1rem;
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:"";position:absolute;top:0;right:0;
+  width:120px;height:120px;
+  background:radial-gradient(circle at top right,rgba(32,196,203,0.05),transparent 70%);
+  pointer-events:none;
+}
+.card h4{color:#20c4cb;margin:0 0 .5rem;font-size:.93rem;font-weight:500;letter-spacing:.3px}
+.card p{color:#a0b4cc;line-height:1.75;margin:0;font-size:.91rem}
+
+/* ── URL tag ── */
+.url-tag{
+  display:inline-block;background:rgba(32,196,203,0.08);
+  color:#20c4cb;border:1px solid rgba(32,196,203,0.2);
+  border-radius:5px;padding:2px 10px;font-size:.76rem;
+  margin-bottom:.5rem;font-family:monospace;letter-spacing:.2px;
+}
+
+/* ── Status badges ── */
+.badge-ok{color:#34d399;font-size:.78rem;font-weight:500}
+.badge-fail{color:#f87171;font-size:.78rem;font-weight:500}
+
+/* ── Compare boxes ── */
+.compare-box{
+  background:#080e1c;
+  border:1px solid rgba(32,196,203,0.15);
+  border-top:2px solid rgba(180,130,255,0.4);
+  border-radius:10px;padding:1rem 1.2rem;height:100%;
+  position:relative;overflow:hidden;
+}
+.compare-box::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:40px;
+  background:linear-gradient(180deg,rgba(180,130,255,0.04),transparent);
+  pointer-events:none;
+}
+.compare-box h5{color:#b482ff;margin:0 0 .5rem;font-size:.88rem;font-weight:500}
+.compare-box p{color:#8899b4;line-height:1.65;margin:0;font-size:.87rem}
+
+/* ── Winner box ── */
+.winner-box{
+  background:#071a10;
+  border:1px solid rgba(52,211,153,0.25);
+  border-left:3px solid #34d399;
+  border-radius:10px;padding:1.2rem 1.4rem;margin-top:1rem;
+  position:relative;overflow:hidden;
+}
+.winner-box::before{
+  content:"";position:absolute;top:0;right:0;
+  width:100px;height:100px;
+  background:radial-gradient(circle at top right,rgba(52,211,153,0.07),transparent 70%);
+  pointer-events:none;
+}
+.winner-box h4{color:#34d399;margin:0 0 .5rem;font-weight:500}
+.winner-box p{color:#a0c4b0;line-height:1.7;margin:0;font-size:.92rem}
+
+/* ── Insight box ── */
+.insight-box{
+  background:#080e1c;
+  border-left:3px solid rgba(32,196,203,0.5);
+  border-radius:0 8px 8px 0;
+  padding:.85rem 1.1rem;margin-bottom:.6rem;
+}
+.insight-box h5{color:#20c4cb;margin:0 0 .3rem;font-size:.87rem;font-weight:500}
+.insight-box p{color:#a0b4cc;line-height:1.65;margin:0;font-size:.89rem}
+
+/* ── RAG Chat ── */
+.rag-msg-user{display:flex;justify-content:flex-end;margin-bottom:.7rem}
+.rag-msg-user .bubble{
+  background:rgba(32,196,203,0.1);color:#c8d8f0;
+  border:1px solid rgba(32,196,203,0.2);
+  border-radius:12px 2px 12px 12px;
+  padding:.65rem 1rem;font-size:.9rem;max-width:80%;line-height:1.65;
+}
+.rag-msg-ai{display:flex;gap:8px;align-items:flex-start;margin-bottom:.7rem}
+.rag-msg-ai .bubble{
+  background:#0a1220;color:#a0b4cc;
+  border:1px solid rgba(32,196,203,0.15);
+  border-radius:2px 12px 12px 12px;
+  padding:.65rem 1rem;font-size:.9rem;max-width:88%;line-height:1.65;
+}
+
+/* ── Dept cards ── */
+.dept-card{
+  background:#080e1c;border:1px solid rgba(32,196,203,0.15);
+  border-radius:8px;padding:.85rem 1rem;text-align:center;
+  cursor:pointer;transition:all .2s;
+}
+.dept-card:hover{
+  border-color:#20c4cb;background:rgba(32,196,203,0.06);
+  transform:translateY(-1px);
+}
+.dept-card h5{color:#20c4cb;margin:0 0 .25rem;font-size:.87rem;font-weight:500}
+.dept-card p{color:#6b82a8;margin:0;font-size:.77rem}
+
+/* ── Radio (mode selector) ── */
+div[role="radiogroup"]{gap:4px}
+div[role="radiogroup"] label{
+  background:#0a1220!important;
+  border:1px solid rgba(32,196,203,0.15)!important;
+  border-radius:7px!important;padding:6px 14px!important;
+  color:#6b82a8!important;font-size:.88rem!important;
+  transition:all .15s!important;
+}
+div[role="radiogroup"] label:hover{
+  border-color:rgba(32,196,203,0.4)!important;
+  color:#20c4cb!important;
+}
+div[role="radiogroup"] label[data-checked="true"],
+div[role="radiogroup"] label[aria-checked="true"]{
+  background:rgba(32,196,203,0.1)!important;
+  border-color:#20c4cb!important;
+  color:#20c4cb!important;
+}
+
+/* ── Tabs ── */
+.stTabs [data-baseweb="tab-list"]{
+  background:transparent;border-bottom:1px solid rgba(32,196,203,0.15);gap:0;
+}
+.stTabs [data-baseweb="tab"]{
+  background:transparent;color:#6b82a8;
+  border-bottom:2px solid transparent;
+  padding:8px 20px;font-size:.88rem;
+}
+.stTabs [data-baseweb="tab"]:hover{color:#20c4cb}
+.stTabs [aria-selected="true"]{
+  color:#20c4cb!important;
+  border-bottom-color:#20c4cb!important;
+  background:transparent!important;
+}
+.stTabs [data-baseweb="tab-panel"]{padding-top:1.2rem}
+
+/* ── File uploader ── */
+[data-testid="stFileUploader"]{
+  background:#080e1c;border:1px dashed rgba(32,196,203,0.25);
+  border-radius:10px;padding:.5rem;
+}
+
+/* ── Progress bar ── */
+.stProgress>div>div{background:rgba(32,196,203,0.15)}
+.stProgress>div>div>div{background:linear-gradient(90deg,#20c4cb,#34d399)}
+
+/* ── Spinner ── */
+.stSpinner>div{border-top-color:#20c4cb!important}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(32,196,203,0.3);border-radius:2px}
 </style>
 """, unsafe_allow_html=True)
 
@@ -288,7 +453,7 @@ def single_summary(client, title, text, url, style, length, language, model):
 # ─────────────────────────────────────────────────────────────
 @st.cache_resource(show_spinner=False)
 def load_embedding_model():
-    return SentenceTransformer("all-MiniLM-L6-v2")
+    return TextEmbedding("BAAI/bge-small-en-v1.5")
 
 def build_rag_index(texts_and_names: list[tuple[str, str]]):
     """
@@ -308,7 +473,7 @@ def build_rag_index(texts_and_names: list[tuple[str, str]]):
             all_meta.append({"filename": fname, "chunk_id": i})
 
     model = load_embedding_model()
-    embeddings = model.encode(all_chunks, show_progress_bar=False)
+    embeddings = list(model.embed(all_chunks))
     embeddings = np.array(embeddings, dtype="float32")
 
     dim   = embeddings.shape[1]
@@ -318,7 +483,7 @@ def build_rag_index(texts_and_names: list[tuple[str, str]]):
 
 def rag_retrieve(query, index, chunks, meta, top_k=5):
     model  = load_embedding_model()
-    q_vec  = model.encode([query], show_progress_bar=False)
+    q_vec  = list(model.embed([query]))
     q_vec  = np.array(q_vec, dtype="float32")
     _, I   = index.search(q_vec, top_k)
     results = []
@@ -350,14 +515,20 @@ def rag_answer(client, query, retrieved, model_name, language):
 #  SIDEBAR
 # ─────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("## ⚙️ Settings")
-    st.markdown("---")
+    st.markdown("""
+<div style="padding:14px 0 10px">
+  <div style="font-size:11px;letter-spacing:2px;color:#3a5870;font-weight:400;
+              text-transform:uppercase;margin-bottom:10px">Configuration</div>
+</div>""", unsafe_allow_html=True)
     key_in = st.text_input("Groq API Key", type="password",
                             value=st.session_state.api_key, placeholder="gsk_...")
     if key_in:
         st.session_state.api_key = key_in
-    st.markdown("[Get free Groq key →](https://console.groq.com)")
-    st.markdown("---")
+    st.markdown(
+        '<a href="https://console.groq.com" style="font-size:11px;color:#20c4cb;'
+        'text-decoration:none">Get free key → console.groq.com</a>',
+        unsafe_allow_html=True)
+    st.markdown('<hr style="border-color:rgba(32,196,203,0.1);margin:12px 0">', unsafe_allow_html=True)
 
     model = st.selectbox("Model", [
         "llama-3.3-70b-versatile", "llama3-8b-8192",
@@ -382,9 +553,9 @@ with st.sidebar:
         st.markdown("### 📚 Loaded documents")
         for fname in st.session_state.rag_docs_loaded:
             st.markdown(
-                f'<div style="background:#1a1d2e;border-left:3px solid #a6e3a1;'
+                f'<div style="background:rgba(52,211,153,0.06);border-left:2px solid #34d399;'
                 f'border-radius:0 6px 6px 0;padding:4px 10px;margin-bottom:4px;'
-                f'font-size:.8rem;color:#a6e3a1">📄 {fname}</div>',
+                f'font-size:.79rem;color:#34d399;font-family:monospace">◈ {fname}</div>',
                 unsafe_allow_html=True
             )
         if st.button("🗑 Clear documents & chat"):
@@ -410,26 +581,88 @@ with st.sidebar:
 # ─────────────────────────────────────────────────────────────
 #  HEADER
 # ─────────────────────────────────────────────────────────────
+# ── LENS topbar ──────────────────────────────────────────────
 st.markdown("""
-<h1 style='color:#cdd6f4;margin-bottom:0'>🧠 AI Document & URL Analyst  <span style='font-size:.6em;color:#6c7086'>v3.0</span></h1>
-<p style='color:#6c7086;margin-top:4px'>
-  Summarize · Compare · Power BI Analyst · Document Chat (RAG)
-</p>
-""", unsafe_allow_html=True)
-st.markdown("---")
+<div style="
+  background:#080e1c;
+  border:1px solid rgba(32,196,203,0.15);
+  border-radius:12px;
+  padding:14px 22px;
+  display:flex;align-items:center;gap:16px;
+  margin-bottom:1rem;
+  position:relative;overflow:hidden;
+">
+  <div style="
+    position:absolute;top:0;left:0;right:0;bottom:0;
+    background:radial-gradient(ellipse at 20% 50%,rgba(32,196,203,0.04),transparent 60%);
+    pointer-events:none;
+  "></div>
 
-mode = st.radio("Mode", [
-    "📄 Summarize URLs",
-    "⚖️ Compare & Rank",
-    "📊 Power BI Analyst",
-    "🧠 Document Chat (RAG)",
-], horizontal=True, label_visibility="collapsed")
-st.markdown("---")
+  <!-- Logo -->
+  <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+    <div style="
+      width:34px;height:34px;border-radius:8px;
+      background:linear-gradient(135deg,#0d7a85,#20c4cb);
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 0 16px rgba(32,196,203,0.25);
+    ">
+      <span style="color:#fff;font-size:16px;font-weight:700;letter-spacing:-1px">L</span>
+    </div>
+    <div style="line-height:1.15">
+      <div style="font-size:16px;font-weight:500;color:#e0ecf4;letter-spacing:.5px">LENS</div>
+      <div style="font-size:8px;letter-spacing:2.5px;color:#3a5870;font-weight:400;text-transform:uppercase">AI Document Platform</div>
+    </div>
+  </div>
+
+  <!-- Divider -->
+  <div style="width:1px;height:28px;background:rgba(32,196,203,0.15);flex-shrink:0"></div>
+
+  <!-- Tagline -->
+  <div style="font-size:12px;color:#4a6a80;letter-spacing:.2px">
+    Summarize &nbsp;·&nbsp; Compare &nbsp;·&nbsp; Chat &nbsp;·&nbsp; Analyse
+  </div>
+
+  <!-- Right pills -->
+  <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+    <div style="
+      background:rgba(32,196,203,0.08);border:1px solid rgba(32,196,203,0.2);
+      border-radius:20px;padding:3px 10px;
+      font-size:10px;color:#20c4cb;display:flex;align-items:center;gap:5px;
+    ">
+      <span style="font-size:8px">⬡</span> Llama 3.3 70B
+    </div>
+    <div style="
+      background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);
+      border-radius:20px;padding:3px 10px;
+      font-size:10px;color:#34d399;display:flex;align-items:center;gap:5px;
+    ">
+      <span style="width:5px;height:5px;border-radius:50%;background:#34d399;display:inline-block"></span>
+      Live · v3.0
+    </div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+mode = st.radio("", [
+    "📄  Summarize URLs",
+    "⚖️  Compare & Rank",
+    "📊  Power BI Analyst",
+    "🧠  Document Chat (RAG)",
+], horizontal=True, label_visibility="collapsed",
+   key="mode_radio")
+
+# Normalise mode key (strip extra spaces for matching)
+mode = mode.strip()
+st.markdown(
+    '<div style="height:2px;background:linear-gradient(90deg,rgba(32,196,203,0.4),rgba(32,196,203,0),rgba(52,211,153,0));'
+    'border-radius:2px;margin-bottom:1.2rem"></div>',
+    unsafe_allow_html=True
+)
 
 # ─────────────────────────────────────────────────────────────
 #  MODE 1 — SUMMARIZE URLs
 # ─────────────────────────────────────────────────────────────
-if mode == "📄 Summarize URLs":
+if "Summarize" in mode:
     st.markdown("#### Paste one or more URLs")
     c1, c2 = st.columns([3,1])
     with c1:
@@ -503,7 +736,7 @@ if mode == "📄 Summarize URLs":
 # ─────────────────────────────────────────────────────────────
 #  MODE 2 — COMPARE & RANK  (URLs or Documents)
 # ─────────────────────────────────────────────────────────────
-elif mode == "⚖️ Compare & Rank":
+elif "Compare" in mode:
     st.markdown("#### Compare URLs or uploaded documents — side-by-side · differences · ranked winner")
 
     input_type = st.radio("Input type", ["🔗 URLs", "📁 Upload documents"],
@@ -693,7 +926,7 @@ elif mode == "⚖️ Compare & Rank":
 # ─────────────────────────────────────────────────────────────
 #  MODE 3 — POWER BI AI ANALYST
 # ─────────────────────────────────────────────────────────────
-elif mode == "📊 Power BI Analyst":
+elif "Power BI" in mode:
     st.markdown("#### Paste dashboard data — get business insights, period comparisons, written reports")
     st.markdown("---")
 
@@ -814,7 +1047,7 @@ elif mode == "📊 Power BI Analyst":
 # ─────────────────────────────────────────────────────────────
 #  MODE 4 — DOCUMENT CHAT (RAG)
 # ─────────────────────────────────────────────────────────────
-elif mode == "🧠 Document Chat (RAG)":
+elif "Document Chat" in mode:
     st.markdown("#### Upload documents · then chat with them using AI")
     st.caption(
         "Supports PDF, DOCX, TXT · Multiple documents · "
@@ -852,7 +1085,7 @@ elif mode == "🧠 Document Chat (RAG)":
         if not st.session_state.api_key:
             st.error("Add Groq API key in sidebar."); st.stop()
 
-        with st.spinner("Loading embedding model (first time ~30s, cached after)..."):
+        with st.spinner("Loading embedding model (first time ~20s, cached after)..."):
             _ = load_embedding_model()
 
         texts_and_names = []
