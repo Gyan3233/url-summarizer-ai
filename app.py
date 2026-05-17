@@ -15,7 +15,7 @@ import re, time, io, os, tempfile
 from urllib.parse import urlparse
 from datetime import datetime
 
-# ── Optional heavy imports (graceful fallback if missing) ─────
+# ── Optional imports ──────────────────────────────────────────
 try:
     import fitz                                    # PyMuPDF
     PDF_OK = True
@@ -28,13 +28,7 @@ try:
 except ImportError:
     DOCX_OK = False
 
-try:
-    from fastembed import TextEmbedding
-    import faiss, numpy as np
-    from langchain.text_splitter import RecursiveCharacterTextSplitter
-    RAG_OK = True
-except ImportError:
-    RAG_OK = False
+RAG_OK = False  # RAG removed — coming in v4.0
 
 # ─────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -450,66 +444,6 @@ def single_summary(client, title, text, url, style, length, language, model):
 
 # ─────────────────────────────────────────────────────────────
 #  RAG FUNCTIONS
-# ─────────────────────────────────────────────────────────────
-@st.cache_resource(show_spinner=False)
-def load_embedding_model():
-    return TextEmbedding("BAAI/bge-small-en-v1.5")
-
-def build_rag_index(texts_and_names: list[tuple[str, str]]):
-    """
-    texts_and_names: [(text, filename), ...]
-    Returns: (faiss_index, all_chunks, all_meta)
-    """
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=50,
-        separators=["\n\n", "\n", ". ", " "],
-    )
-    all_chunks, all_meta = [], []
-    for text, fname in texts_and_names:
-        chunks = splitter.split_text(text)
-        for i, chunk in enumerate(chunks):
-            all_chunks.append(chunk)
-            all_meta.append({"filename": fname, "chunk_id": i})
-
-    model = load_embedding_model()
-    embeddings = list(model.embed(all_chunks))
-    embeddings = np.array(embeddings, dtype="float32")
-
-    dim   = embeddings.shape[1]
-    index = faiss.IndexFlatL2(dim)
-    index.add(embeddings)
-    return index, all_chunks, all_meta
-
-def rag_retrieve(query, index, chunks, meta, top_k=5):
-    model  = load_embedding_model()
-    q_vec  = list(model.embed([query]))
-    q_vec  = np.array(q_vec, dtype="float32")
-    _, I   = index.search(q_vec, top_k)
-    results = []
-    for idx in I[0]:
-        if idx < len(chunks):
-            results.append({
-                "chunk": chunks[idx],
-                "source": meta[idx]["filename"],
-                "chunk_id": meta[idx]["chunk_id"]
-            })
-    return results
-
-def rag_answer(client, query, retrieved, model_name, language):
-    context = "\n\n---\n".join(
-        f"[Source: {r['source']}]\n{r['chunk']}" for r in retrieved
-    )
-    prompt = (
-        f"You are an AI analyst. Answer the question below ONLY using the provided context.\n"
-        f"If the answer is not in the context, say 'I could not find this in the uploaded documents.'\n"
-        f"Do not make up information.\n\n"
-        f"Context:\n{context}\n\n"
-        f"Question: {query}\n"
-        f"Answer in: {language}\n\n"
-        f"Provide a clear, well-structured answer with source references where relevant."
-    )
-    return call_groq(client, prompt, model_name, 600)
 
 # ─────────────────────────────────────────────────────────────
 #  SIDEBAR
@@ -668,7 +602,7 @@ div[role="radiogroup"] { gap:0px !important; }
 </style>
 """, unsafe_allow_html=True)
 
-mode = st.radio("", [
+mode = st.radio("Select mode", [
     "📄  Summarize URLs",
     "⚖️  Compare & Rank",
     "📊  Power BI Analyst",
@@ -1074,223 +1008,32 @@ elif "Power BI" in mode:
 #  MODE 4 — DOCUMENT CHAT (RAG)
 # ─────────────────────────────────────────────────────────────
 elif "Document Chat" in mode:
-    st.markdown("#### Upload documents · then chat with them using AI")
-    st.caption(
-        "Supports PDF, DOCX, TXT · Multiple documents · "
-        "Answers grounded in your documents only · Session-based memory"
-    )
-
-    if not RAG_OK:
-        st.markdown("""
-<div style="background:#0a1628;border:1px solid rgba(32,196,203,0.2);
-border-left:3px solid #20c4cb;border-radius:10px;padding:1.4rem 1.6rem;margin-top:1rem">
-  <div style="font-size:18px;font-weight:500;color:#e8f4f8;margin-bottom:8px">
-    🖥️ Available on Local Docker Version
+    st.markdown("""
+<div style="background:#0a1220;border:1px solid rgba(32,196,203,0.2);
+border-left:3px solid #20c4cb;border-radius:12px;
+padding:2rem 2.2rem;margin-top:1rem;text-align:center">
+  <div style="font-size:48px;margin-bottom:1rem">🧠</div>
+  <div style="font-size:22px;font-weight:500;color:#e8f4f8;margin-bottom:.6rem">
+    Document Chat — Coming in v4.0
   </div>
-  <div style="font-size:14px;color:#5a8099;line-height:1.8;margin-bottom:14px">
-    Document Chat (RAG) requires heavy ML packages that exceed Streamlit Cloud's
-    free tier limits. It runs fully on your local Docker setup.
+  <div style="font-size:14px;color:#5a8099;line-height:1.8;max-width:500px;margin:0 auto 1.4rem">
+    Upload PDFs, DOCX files and chat with them using AI.<br>
+    Powered by RAG — retrieval-augmented generation.<br>
+    Available on dedicated server deployment.
   </div>
-  <div style="background:#060b14;border:1px solid rgba(32,196,203,0.15);
-  border-radius:8px;padding:1rem 1.2rem;margin-bottom:14px">
-    <div style="font-size:11px;letter-spacing:2px;color:#3a5870;margin-bottom:8px">
-      TO RUN LOCALLY
-    </div>
-    <div style="font-family:monospace;font-size:13px;color:#20c4cb;line-height:2">
-      1. Clone repo: git clone https://github.com/Gyan3233/url-summarizer-ai<br>
-      2. Add your key: echo "GROQ_API_KEY=gsk_..." > .env<br>
-      3. Run: docker-compose up --build<br>
-      4. Open: http://localhost:8501
-    </div>
-  </div>
-  <div style="display:flex;gap:10px;flex-wrap:wrap">
+  <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap">
     <div style="background:rgba(32,196,203,0.08);border:1px solid rgba(32,196,203,0.2);
-    border-radius:6px;padding:5px 12px;font-size:12px;color:#20c4cb">
-      ✅ Summarize URLs — available here
+    border-radius:6px;padding:6px 14px;font-size:12px;color:#20c4cb">
+      ✅ Summarize URLs — available now
     </div>
     <div style="background:rgba(32,196,203,0.08);border:1px solid rgba(32,196,203,0.2);
-    border-radius:6px;padding:5px 12px;font-size:12px;color:#20c4cb">
-      ✅ Compare & Rank — available here
+    border-radius:6px;padding:6px 14px;font-size:12px;color:#20c4cb">
+      ✅ Compare & Rank — available now
     </div>
     <div style="background:rgba(32,196,203,0.08);border:1px solid rgba(32,196,203,0.2);
-    border-radius:6px;padding:5px 12px;font-size:12px;color:#20c4cb">
-      ✅ Power BI Analyst — available here
-    </div>
-    <div style="background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);
-    border-radius:6px;padding:5px 12px;font-size:12px;color:#34d399">
-      🖥️ Document Chat (RAG) — Docker only
+    border-radius:6px;padding:6px 14px;font-size:12px;color:#20c4cb">
+      ✅ Power BI Analyst — available now
     </div>
   </div>
 </div>
 """, unsafe_allow_html=True)
-        st.stop()
-
-    # ── Step 1: Upload ────────────────────────────────────────
-    st.markdown("### Step 1 — Upload your documents")
-    uploaded_files = st.file_uploader(
-        "Upload PDF, DOCX, or TXT files",
-        type=["pdf","docx","txt"],
-        accept_multiple_files=True,
-        key="rag_upload"
-    )
-
-    col1, col2 = st.columns([2,1])
-    with col1:
-        if uploaded_files:
-            st.markdown(f"**{len(uploaded_files)} file(s) selected:**")
-            for f in uploaded_files:
-                st.markdown(f"• {f.name} ({round(f.size/1024,1)} KB)")
-    with col2:
-        build_btn = st.button("🔨 Build index & start chat",
-                              use_container_width=True,
-                              disabled=not bool(uploaded_files))
-
-    if build_btn and uploaded_files:
-        if not st.session_state.api_key:
-            st.error("Add Groq API key in sidebar."); st.stop()
-
-        with st.spinner("Loading embedding model (first time ~20s, cached after)..."):
-            _ = load_embedding_model()
-
-        texts_and_names = []
-        errors = []
-        prog = st.progress(0, text="Extracting text from documents...")
-        for i, f in enumerate(uploaded_files):
-            prog.progress((i+1)/len(uploaded_files), text=f"Reading {f.name}...")
-            text = extract_file(f)
-            if text.startswith("Error") or "error" in text[:20].lower():
-                errors.append(f"{f.name}: {text[:100]}")
-            else:
-                texts_and_names.append((text, f.name))
-        prog.empty()
-
-        if errors:
-            for e in errors:
-                st.warning(f"⚠️ {e}")
-
-        if texts_and_names:
-            with st.spinner(f"Building vector index for {len(texts_and_names)} document(s)..."):
-                idx, chunks, meta = build_rag_index(texts_and_names)
-                st.session_state.rag_index    = idx
-                st.session_state.rag_chunks   = chunks
-                st.session_state.rag_meta     = meta
-                st.session_state.rag_chat     = []
-                st.session_state.rag_docs_loaded = [t[1] for t in texts_and_names]
-
-            st.success(
-                f"✅ Index built — {len(chunks)} chunks from "
-                f"{len(texts_and_names)} document(s). Start chatting below!"
-            )
-        else:
-            st.error("No documents could be parsed. Check file formats.")
-
-    st.markdown("---")
-
-    # ── Step 2: Chat ──────────────────────────────────────────
-    if st.session_state.rag_index is not None:
-        st.markdown(f"### Step 2 — Chat with your documents")
-        loaded = st.session_state.rag_docs_loaded
-        st.markdown(
-            "Loaded: " + " · ".join(f"`{f}`" for f in loaded),
-            unsafe_allow_html=False
-        )
-        st.markdown("---")
-
-        # Render chat history
-        chat_container = st.container()
-        with chat_container:
-            for msg in st.session_state.rag_chat:
-                if msg["role"] == "user":
-                    st.markdown(
-                        f'<div class="rag-msg-user">'
-                        f'<div class="bubble">{msg["content"]}</div></div>',
-                        unsafe_allow_html=True)
-                else:
-                    st.markdown(
-                        f'<div class="rag-msg-ai">'
-                        f'<div style="width:28px;height:28px;flex-shrink:0;border-radius:6px;'
-                        f'background:#1a2b4a;display:flex;align-items:center;'
-                        f'justify-content:center;font-size:14px">🧠</div>'
-                        f'<div class="bubble">{msg["content"].replace(chr(10),"<br>")}</div></div>',
-                        unsafe_allow_html=True)
-
-        # Suggested questions
-        if not st.session_state.rag_chat:
-            st.markdown("**Suggested questions:**")
-            suggestions = [
-                "What are the main topics covered in these documents?",
-                "What are the key risks or concerns mentioned?",
-                "Summarise the most important findings.",
-                "What are the recommendations or next steps?",
-                "Are there any contradictions between the documents?",
-            ]
-            s_cols = st.columns(2)
-            for i, sug in enumerate(suggestions[:4]):
-                with s_cols[i % 2]:
-                    if st.button(sug, key=f"sug_{i}", use_container_width=True):
-                        st.session_state["_rag_q"] = sug
-                        st.rerun()
-
-        # Input
-        st.markdown("---")
-        c1, c2 = st.columns([5,1])
-        with c1:
-            user_q = st.text_input(
-                "Ask a question about your documents",
-                value=st.session_state.pop("_rag_q", ""),
-                placeholder="What does the contract say about termination?",
-                label_visibility="collapsed",
-                key="rag_input"
-            )
-        with c2:
-            ask_btn = st.button("Ask →", use_container_width=True)
-
-        if (ask_btn or user_q) and user_q.strip():
-            if not st.session_state.api_key:
-                st.error("Add Groq API key in sidebar."); st.stop()
-
-            client = Groq(api_key=st.session_state.api_key)
-
-            with st.spinner("Searching documents and generating answer..."):
-                retrieved = rag_retrieve(
-                    user_q,
-                    st.session_state.rag_index,
-                    st.session_state.rag_chunks,
-                    st.session_state.rag_meta,
-                    top_k=5
-                )
-                answer = rag_answer(client, user_q, retrieved, model, language)
-
-            # Add to chat
-            st.session_state.rag_chat.append({"role":"user",    "content": user_q})
-            st.session_state.rag_chat.append({"role":"assistant","content": answer})
-
-            # Show sources used
-            unique_sources = list(dict.fromkeys(r["source"] for r in retrieved))
-            st.markdown(
-                f'<div style="font-size:.78rem;color:#585b70;margin-top:4px">'
-                f'Sources used: {" · ".join(unique_sources)}</div>',
-                unsafe_allow_html=True)
-
-            st.rerun()
-
-        # Download chat
-        if st.session_state.rag_chat:
-            chat_txt = "\n\n".join(
-                f"{'You' if m['role']=='user' else 'AI'}: {m['content']}"
-                for m in st.session_state.rag_chat
-            )
-            st.download_button(
-                "⬇️ Download chat transcript",
-                chat_txt,
-                f"chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
-                key="dl_chat"
-            )
-
-    else:
-        st.info(
-            "Upload your documents above and click **Build index & start chat** to begin.\n\n"
-            "**Works best with:** policy documents, contracts, financial reports, "
-            "resumes, RFPs, technical specs\n\n"
-            "**Supported formats:** PDF · DOCX · TXT"
-        )
