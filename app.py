@@ -3,7 +3,7 @@
 #  Modes:
 #    1. Summarize URLs
 #    2. Compare & Rank  (URLs  OR  uploaded documents)
-#    3. Power BI AI Analyst
+#    3. AI Analyser
 # ─────────────────────────────────────────────────────────────
 
 import streamlit as st
@@ -566,7 +566,7 @@ div[role="radiogroup"] { gap:0px !important; }
 mode = st.radio("Select mode", [
     "📄  Summarize URLs",
     "⚖️  Compare & Rank",
-    "📊  Power BI Analyst",
+    "🤖  AI Analyser",
 ], horizontal=True, label_visibility="collapsed",
    key="mode_radio")
 
@@ -846,7 +846,7 @@ elif "Compare" in mode:
 # ─────────────────────────────────────────────────────────────
 #  MODE 3 — POWER BI AI ANALYST
 # ─────────────────────────────────────────────────────────────
-elif "Power BI" in mode:
+elif "AI Analyser" in mode:
     st.markdown("#### Paste dashboard data — get business insights, period comparisons, written reports")
     st.markdown("---")
 
@@ -867,7 +867,7 @@ elif "Power BI" in mode:
             client = Groq(api_key=st.session_state.api_key)
             with st.spinner("Analysing..."):
                 pr = (
-                    f"You are an expert business analyst in a Power BI dashboard.\n"
+                    f"You are an expert business analyst in a AI Analyser dashboard.\n"
                     f"Data: {data_in}\n"
                     f"{'Question: '+question if question.strip() else 'Provide key insights.'}\n\n"
                     f"Respond with: 1. Direct answer  2. Top 3 insights  "
