@@ -4,7 +4,6 @@
 #    1. Summarize URLs
 #    2. Compare & Rank  (URLs  OR  uploaded documents)
 #    3. Power BI AI Analyst
-#    4. Document Chat  (RAG over uploaded PDF / DOCX / TXT)
 # ─────────────────────────────────────────────────────────────
 
 import streamlit as st
@@ -28,7 +27,6 @@ try:
 except ImportError:
     DOCX_OK = False
 
-RAG_OK = False  # RAG removed — coming in v4.0
 
 # ─────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -167,21 +165,6 @@ hr{border-color:rgba(32,196,203,0.1)}
 .insight-box h5{color:#20c4cb;margin:0 0 .3rem;font-size:.87rem;font-weight:500}
 .insight-box p{color:#a0b4cc;line-height:1.65;margin:0;font-size:.89rem}
 
-/* ── RAG Chat ── */
-.rag-msg-user{display:flex;justify-content:flex-end;margin-bottom:.7rem}
-.rag-msg-user .bubble{
-  background:rgba(32,196,203,0.1);color:#c8d8f0;
-  border:1px solid rgba(32,196,203,0.2);
-  border-radius:12px 2px 12px 12px;
-  padding:.65rem 1rem;font-size:.9rem;max-width:80%;line-height:1.65;
-}
-.rag-msg-ai{display:flex;gap:8px;align-items:flex-start;margin-bottom:.7rem}
-.rag-msg-ai .bubble{
-  background:#0a1220;color:#a0b4cc;
-  border:1px solid rgba(32,196,203,0.15);
-  border-radius:2px 12px 12px 12px;
-  padding:.65rem 1rem;font-size:.9rem;max-width:88%;line-height:1.65;
-}
 
 /* ── Dept cards ── */
 .dept-card{
@@ -259,11 +242,6 @@ div[role="radiogroup"] label[aria-checked="true"]{
 for k, v in {
     "api_key": "",
     "history": [],
-    "rag_index": None,      # FAISS index
-    "rag_chunks": [],       # list of text chunks
-    "rag_meta": [],         # list of {filename, chunk_id}
-    "rag_chat": [],         # [{role, content}]
-    "rag_docs_loaded": [],  # filenames successfully indexed
 }.items():
     if k not in st.session_state:
         st.session_state[k] = v
@@ -443,9 +421,6 @@ def single_summary(client, title, text, url, style, length, language, model):
     return call_groq(client, prompt, model, length_map.get(length, 320))
 
 # ─────────────────────────────────────────────────────────────
-#  RAG FUNCTIONS
-
-# ─────────────────────────────────────────────────────────────
 #  SIDEBAR
 # ─────────────────────────────────────────────────────────────
 with st.sidebar:
@@ -482,20 +457,6 @@ with st.sidebar:
     timeout = st.slider("URL timeout (s)", 5, 30, 12)
     st.markdown("---")
 
-    # RAG status
-    if st.session_state.rag_docs_loaded:
-        st.markdown("### 📚 Loaded documents")
-        for fname in st.session_state.rag_docs_loaded:
-            st.markdown(
-                f'<div style="background:rgba(52,211,153,0.06);border-left:2px solid #34d399;'
-                f'border-radius:0 6px 6px 0;padding:4px 10px;margin-bottom:4px;'
-                f'font-size:.79rem;color:#34d399;font-family:monospace">◈ {fname}</div>',
-                unsafe_allow_html=True
-            )
-        if st.button("🗑 Clear documents & chat"):
-            for k in ["rag_index","rag_chunks","rag_meta","rag_chat","rag_docs_loaded"]:
-                st.session_state[k] = None if k == "rag_index" else []
-            st.rerun()
     st.markdown("---")
 
     if st.session_state.history:
@@ -606,7 +567,6 @@ mode = st.radio("Select mode", [
     "📄  Summarize URLs",
     "⚖️  Compare & Rank",
     "📊  Power BI Analyst",
-    "🧠  Document Chat (RAG)",
 ], horizontal=True, label_visibility="collapsed",
    key="mode_radio")
 
@@ -1003,37 +963,3 @@ elif "Power BI" in mode:
                         unsafe_allow_html=True)
             st.download_button("⬇️ Download report (.txt)", rep,
                                f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
-
-# ─────────────────────────────────────────────────────────────
-#  MODE 4 — DOCUMENT CHAT (RAG)
-# ─────────────────────────────────────────────────────────────
-elif "Document Chat" in mode:
-    st.markdown("""
-<div style="background:#0a1220;border:1px solid rgba(32,196,203,0.2);
-border-left:3px solid #20c4cb;border-radius:12px;
-padding:2rem 2.2rem;margin-top:1rem;text-align:center">
-  <div style="font-size:48px;margin-bottom:1rem">🧠</div>
-  <div style="font-size:22px;font-weight:500;color:#e8f4f8;margin-bottom:.6rem">
-    Document Chat — Coming in v4.0
-  </div>
-  <div style="font-size:14px;color:#5a8099;line-height:1.8;max-width:500px;margin:0 auto 1.4rem">
-    Upload PDFs, DOCX files and chat with them using AI.<br>
-    Powered by RAG — retrieval-augmented generation.<br>
-    Available on dedicated server deployment.
-  </div>
-  <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap">
-    <div style="background:rgba(32,196,203,0.08);border:1px solid rgba(32,196,203,0.2);
-    border-radius:6px;padding:6px 14px;font-size:12px;color:#20c4cb">
-      ✅ Summarize URLs — available now
-    </div>
-    <div style="background:rgba(32,196,203,0.08);border:1px solid rgba(32,196,203,0.2);
-    border-radius:6px;padding:6px 14px;font-size:12px;color:#20c4cb">
-      ✅ Compare & Rank — available now
-    </div>
-    <div style="background:rgba(32,196,203,0.08);border:1px solid rgba(32,196,203,0.2);
-    border-radius:6px;padding:6px 14px;font-size:12px;color:#20c4cb">
-      ✅ Power BI Analyst — available now
-    </div>
-  </div>
-</div>
-""", unsafe_allow_html=True)
