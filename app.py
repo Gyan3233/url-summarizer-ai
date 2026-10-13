@@ -440,8 +440,10 @@ with st.sidebar:
     st.markdown('<hr style="border-color:rgba(32,196,203,0.1);margin:12px 0">', unsafe_allow_html=True)
 
     model = st.selectbox("Model", [
-        "llama-3.3-70b-versatile", "llama3-8b-8192",
-        "mixtral-8x7b-32768", "gemma2-9b-it"
+        "llama3-70b-8192",
+        "mixtral-8x7b-32768",
+        "gemma2-9b-it",
+        "llama3-8b-8192",
     ])
     style = st.selectbox("Summary Style", [
         "Concise bullet points", "Detailed paragraphs",
